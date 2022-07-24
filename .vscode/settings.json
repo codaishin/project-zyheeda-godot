@@ -1,0 +1,18 @@
+{
+	"editor.tabSize": 2,
+	"editor.insertSpaces": false,
+	"editor.wordWrap": "wordWrapColumn",
+	"editor.wrappingIndent": "indent",
+	"editor.wordWrapColumn": 80,
+	"editor.rulers": [
+		80
+	],
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll": true,
+		"source.organizeImports": true,
+	},
+	"files.trimTrailingWhitespace": true,
+	"files.insertFinalNewline": true,
+	"omnisharp.enableEditorConfigSupport": true,
+}
