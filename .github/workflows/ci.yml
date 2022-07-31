@@ -6,6 +6,22 @@ env:
   GODOT_VERSION: 3.3.4
 
 jobs:
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Install dotnet sdk
+        run: |
+          wget https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo apt-get install -y dotnet-sdk-6.0
+      - name: Check file formatting
+        run: dotnet format Project-zyheeda-godot.csproj --verify-no-changes
   run-tests:
     name: Run tests
     runs-on: ubuntu-latest
