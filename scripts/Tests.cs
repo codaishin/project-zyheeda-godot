@@ -1,7 +1,6 @@
 #if TOOLS
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -71,7 +70,7 @@ public class Printer : ITestListener {
 public class Tests : Node {
 
 	private static readonly Assembly assembly = Assembly.GetExecutingAssembly();
-	private static readonly IDictionary settings = new Dictionary<string, object>();
+	private static readonly Dictionary<string, object> settings = new();
 	private static readonly string idPrefix = "__test__";
 
 	private static readonly ITestListener listener = new Printer();
