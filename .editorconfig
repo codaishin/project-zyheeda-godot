@@ -13,6 +13,7 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:error
 
 csharp_style_var_for_built_in_types = true:error
 csharp_style_var_when_type_is_apparent = true:error
+csharp_style_var_elsewhere = true:error
 
 csharp_style_prefer_not_pattern = true:error
 
