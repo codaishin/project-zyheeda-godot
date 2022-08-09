@@ -26,73 +26,93 @@ public class MatchEverything : ITestFilter {
 public class Printer : ITestListener {
 	private int indent = 0;
 
-	private void Print(string value) {
-		var prefix = new string(' ', this.indent);
-		value = string.Join("\n", value.Split("\n").Select(v => prefix + v));
+	private void PrintIndented(string value) {
+		var spaceIndent = new string(' ', this.indent);
+		value = value
+			.Split("\n")
+			.Select(line => spaceIndent + line)
+			.Join("\n");
 		GD.Print(value);
 	}
 
-	private void Print(ITest test) {
+	private void PrintIndented(ITest test) {
+		if (test.Parent == null) {
+			GD.Print("\nRunning tests");
+			return;
+		}
 		if (!test.HasChildren) {
 			return;
 		}
-		this.Print("\n" + test.FullName);
+		this.PrintIndented("\n" + test.FullName);
 	}
 
-	private void Print(ITestResult result) {
+	private void PrintIndented(ITestResult result) {
+		if (result.Test.Parent == null) {
+			var status =
+				result.TotalCount - result.PassCount == 0
+					? "\nSuccess"
+					: "\nSome tests failed";
+			var counts = $"{result.PassCount} of {result.TotalCount}, tests passed\n";
+			this.PrintIndented(status);
+			this.PrintIndented(counts);
+			return;
+		}
 		if (result.Test.HasChildren) {
 			return;
 		}
-		this.Print($"[{result.ResultState}] {result.Test.FullName}");
+		this.PrintIndented($"[{result.ResultState}] {result.Test.Name}");
 		if (result.Message != null) {
-			this.Print(result.Message);
+			this.PrintIndented(result.Message);
 		}
 		if (result.StackTrace != null) {
-			this.Print(result.StackTrace);
+			this.PrintIndented(result.StackTrace);
 		}
 	}
 
-	public void SendMessage(TestMessage message) { }
-	public void TestFinished(ITestResult result) {
-		this.Print(result);
-		this.indent -= 2;
+	private static int IndentationFor(ITest test) {
+		return test.Parent == null ? 0 : 2;
 	}
+
+	public void SendMessage(TestMessage message) { }
+
+	public void TestFinished(ITestResult result) {
+		this.PrintIndented(result);
+		this.indent -= Printer.IndentationFor(result.Test);
+	}
+
 	public void TestOutput(TestOutput output) { }
+
 	public void TestStarted(ITest test) {
-		if (test.Parent == null) {
-			return;
-		}
-		this.indent += 2;
-		this.Print(test);
+		this.indent += Printer.IndentationFor(test);
+		this.PrintIndented(test);
 	}
 }
 
 public class Tests : Node {
+	private readonly Assembly assembly = Assembly.GetExecutingAssembly();
+	private readonly string idPrefix = "__test__";
+	private readonly Dictionary<string, object> settings = new();
 
-	private static readonly Assembly assembly = Assembly.GetExecutingAssembly();
-	private static readonly Dictionary<string, object> settings = new();
-	private static readonly string idPrefix = "__test__";
+	private readonly ITestListener listener = new Printer();
+	private readonly ITestFilter filter = new MatchEverything();
 
-	private static readonly ITestListener listener = new Printer();
-	private static readonly ITestFilter filter = new MatchEverything();
+	private static SceneTree? tree;
 
+	public static SceneTree Tree =>
+		Tests.tree ?? throw new NullReferenceException("scene tree not set");
 
 	public override void _Ready() {
+		Tests.tree = this.GetTree();
+
 		var controller = new FrameworkController(
-			Tests.assembly,
-			Tests.idPrefix,
-			Tests.settings
+			this.assembly,
+			this.idPrefix,
+			this.settings
 		);
 		_ = controller.LoadTests();
+		var result = controller.Runner.Run(this.listener, this.filter);
 
-		GD.Print("\nRunning tests");
-
-		ITestResult result = controller.Runner.Run(Tests.listener, Tests.filter);
-		var failCount = result.TotalCount - result.PassCount;
-
-		GD.Print(failCount == 0 ? "\nSuccess" : "\nSome tests had Errors");
-		GD.Print(result.PassCount, " of ", result.TotalCount, " tests passed\n");
-		this.GetTree().Quit(failCount);
+		Tests.tree.Quit(result.TotalCount - result.PassCount);
 	}
 }
 #endif
