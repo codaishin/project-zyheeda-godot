@@ -8,5 +8,5 @@ fi
 
 if [ "$errors" = "0" ]
 then
-	godot scenes/Tests.tscn --no-window
+	godot scenes/Tests.tscn --no-window --terminal-colored
 fi
