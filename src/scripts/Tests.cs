@@ -173,34 +173,41 @@ public class Printer : ITestListener {
 }
 
 public class Tests : Node {
-	private readonly Assembly assembly = Assembly.GetExecutingAssembly();
-	private readonly string idPrefix = "__test__";
-	private readonly Dictionary<string, object> settings = new();
+	private static readonly Assembly assembly = Assembly.GetExecutingAssembly();
+	private static readonly string idPrefix = "__test__";
+	private static readonly Dictionary<string, object> settings = new();
+
+	private static Node? baseNode = null;
+	public static Node BaseNode =>
+		Tests.baseNode ?? throw new NullReferenceException("scene tree not set");
 
 	private readonly ITestListener listener = new Printer(
-		OS.GetCmdlineArgs().Contains("--terminal-colored")
+		useColors: OS.GetCmdlineArgs().Contains("--terminal-colored")
 	);
 	private readonly ITestFilter filter = new MatchEverything();
+	private readonly FrameworkController controller = new(
+		Tests.assembly,
+		Tests.idPrefix,
+		Tests.settings
+	);
 
-	private static SceneTree? tree;
+	private bool isRunning = false;
 
-	public static SceneTree Tree =>
-		Tests.tree ?? throw new NullReferenceException("scene tree not set");
-
-	public override void _Ready() {
-		Tests.tree = this.GetTree();
-
-		var controller = new FrameworkController(
-			this.assembly,
-			this.idPrefix,
-			this.settings
-		);
-		_ = controller.LoadTests();
-		var result = controller.Runner.Run(this.listener, this.filter);
-		var returnCode = result.TotalCount == 0
-			? 1
-			: result.TotalCount - result.PassCount;
-		Tests.tree.Quit(returnCode);
+	public override void _Process(float delta) {
+		if (this.controller.Runner.WaitForCompletion(0)) {
+			var result = this.controller.Runner.Result;
+			var returnCode = result.TotalCount == 0
+				? 1
+				: result.TotalCount - result.PassCount;
+			this.GetTree().Quit(returnCode);
+		}
+		if (this.isRunning) {
+			return;
+		}
+		Tests.baseNode = this;
+		_ = this.controller.LoadTests();
+		this.controller.Runner.RunAsync(this.listener, this.filter);
+		this.isRunning = true;
 	}
 }
 #endif
