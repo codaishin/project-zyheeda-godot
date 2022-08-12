@@ -1,7 +1,7 @@
 using NUnit.Framework;
 
 [TestFixture]
-public class EnumerableExtensionsTests {
+public class EnumerableExtensionsTests : TestCollection {
 	[Test]
 	public void JoinOneString() {
 		var value = new[] { "hello" };
