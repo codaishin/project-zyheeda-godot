@@ -1,16 +1,20 @@
+using System.Linq;
 using Godot;
 using NUnit.Framework;
-
 
 public class TestCollection {
 	[TearDown]
 	public void CleanNodes() {
-		var baseNode = Tests.BaseNode;
-		foreach (var child in baseNode.GetChildren()) {
-			if (child is Node node) {
-				baseNode.RemoveChild(node);
-				node.QueueFree();
-			}
+		var root = Tests.BaseNode;
+		foreach (var child in root.GetChildren<Node>()) {
+			root.RemoveChild(child);
+			child.QueueFree();
+		}
+		root = Tests.BaseNode.GetTree().Root;
+		var isNotBaseNode = (Node c) => c != Tests.BaseNode;
+		foreach (var child in root.GetChildren<Node>().Where(isNotBaseNode)) {
+			root.RemoveChild(child);
+			child.QueueFree();
 		}
 	}
 }
@@ -34,6 +38,26 @@ public class TestCollectionTests : TestCollection {
 		CollectionAssert.AreEquivalent(
 			new[] { node },
 			Tests.BaseNode.GetChildren()
+		);
+	}
+
+	[Test]
+	public void NodesUnderTreeDoNotBleedInOtherTestsA() {
+		var node = new Node();
+		Tests.BaseNode.GetTree().Root.AddChild(node);
+		CollectionAssert.AreEquivalent(
+			new[] { node, Tests.BaseNode },
+			Tests.BaseNode.GetTree().Root.GetChildren()
+		);
+	}
+
+	[Test]
+	public void NodesUnderTreeDoNotBleedInOtherTestsB() {
+		var node = new Node();
+		Tests.BaseNode.GetTree().Root.AddChild(node);
+		CollectionAssert.AreEquivalent(
+			new[] { node, Tests.BaseNode },
+			Tests.BaseNode.GetTree().Root.GetChildren()
 		);
 	}
 }
