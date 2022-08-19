@@ -16,6 +16,7 @@
 	"files.insertFinalNewline": true,
 	"omnisharp.enableEditorConfigSupport": true,
 	"cSpell.words": [
-		"Cmdline"
+		"Cmdline",
+		"Zyheeda"
 	],
 }
