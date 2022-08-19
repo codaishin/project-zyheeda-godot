@@ -5,14 +5,16 @@ using NUnit.Framework;
 public class TestCollection {
 	[TearDown]
 	public void CleanNodes() {
+		var isNotBaseNode = (Node c) => c != Tests.BaseNode;
 		var root = Tests.BaseNode;
-		foreach (var child in root.GetChildren<Node>()) {
+		var children = root.GetChildren().OfType<Node>();
+		foreach (var child in children) {
 			root.RemoveChild(child);
 			child.QueueFree();
 		}
 		root = Tests.BaseNode.GetTree().Root;
-		var isNotBaseNode = (Node c) => c != Tests.BaseNode;
-		foreach (var child in root.GetChildren<Node>().Where(isNotBaseNode)) {
+		children = root.GetChildren().OfType<Node>().Where(isNotBaseNode);
+		foreach (var child in children) {
 			root.RemoveChild(child);
 			child.QueueFree();
 		}
