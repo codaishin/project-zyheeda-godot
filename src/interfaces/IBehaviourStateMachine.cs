@@ -1,4 +1,4 @@
 public interface IBehaviorStateMachine {
-	void RunNext();
-	void Cancel();
+	void Run();
+	void Reset();
 }
