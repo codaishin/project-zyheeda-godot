@@ -3,6 +3,7 @@
 		<TargetFramework>net472</TargetFramework>
 		<LangVersion>10</LangVersion>
 		<Nullable>enable</Nullable>
+		<WarningsAsErrors>CS8602,CS8714</WarningsAsErrors>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(Configuration)'=='DEBUG'">
 		<PackageReference Include="NUnit" Version="3.13.3" />
